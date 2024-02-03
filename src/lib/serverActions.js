@@ -59,7 +59,7 @@ export const handleGitHubLogin = async () => {
         connectDB();
         const user = await User.findOne({email});
         if(user){
-           return 'User already exists'
+           return {error: 'User already exists!'}
         }
 
         const salt = await bcrypt.genSalt(10);
@@ -79,13 +79,17 @@ export const handleGitHubLogin = async () => {
     }
   };
 
-  export const login = async(formData) => {
+  export const login = async(previousState, formData) => {
     const { email, password } = Object.fromEntries(formData);
 
     try {
         await signIn("credentials", {email, password});
+        return {success: true}
     } catch (error) {
         console.log(error);
-        return{ error: "Something went wrong"}
+        if(error.message.includes('CredentialsSignin')){
+            return {error: 'Invalid email or password!'}
+        }
+        throw error;
     }
   }
